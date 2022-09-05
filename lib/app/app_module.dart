@@ -4,6 +4,4 @@ class HeatMapModuleMain extends Module {
   @override
   List<Bind> get binds => [];
 
-  @override
-  List<ModularRoute> get routes => [];
 }
