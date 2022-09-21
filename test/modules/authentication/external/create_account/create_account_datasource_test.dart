@@ -1,46 +1,41 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heat_map_package/app/core/domain/model/account.dart';
 import 'package:heat_map_package/app/modules/authentication/external/create_account/create_account_datasource_implements.dart';
+import 'package:heat_map_package/app/modules/authentication/external/http/http_client_interface.dart';
 import 'package:heat_map_package/app/modules/authentication/infra/models/account_model.dart';
 import 'package:mocktail/mocktail.dart';
 
-class DioMock extends Mock implements Dio {}
+class HttpMock extends Mock implements IHttpClient {}
 
 void main() {
+  final client = HttpMock();
+
   test("Create account data source", () async {
-    final dioMock = DioMock();
-    final datasource = CreateAccountDataSource(dioMock);
-    final response = Response(
-      data: jsonDecode(responseAPI),
-      statusCode: 200,
-      requestOptions: RequestOptions(
-        path: '',
-      ),
+    final account = Account(
+      access: Access.USER,
+      isValid: false,
+      posts: [],
+      name: "tiago",
+      email: "thiagocesarmata@gmail.com",
+      password: "Asdasdasdasdas",
     );
 
-    when(() => dioMock.post(
-          "http://localhost:5050/api/signup",
+    when(() => client.post(
+          any(),
           data: {
-            "name": "Thiago",
-            "email": "thiagocesarmata@gmail.com",
-            "password": "asdasdasdas",
+            "name": account.name,
+            "email": account.email,
+            "password": account.password,
           },
-        )).thenAnswer((_) async => response);
-
-    var result = await datasource.createAccount(
-      Account(
-        access: Access.USER,
-        isValid: false,
-        posts: [],
-        name: "tiago",
-        email: "thiagocesarmata@gmail.com",
-        password: "Asdasdasdasdas",
-      ),
+        )).thenAnswer(
+      (_) async => await jsonDecode(responseAPI),
     );
 
+    final datasource = CreateAccountDataSource(client);
+    var result = await datasource.createAccount(account);
+    expect(result.name, "Thiago");
     expect(result, isA<AccountModel>());
   });
 }
@@ -53,24 +48,3 @@ const responseAPI = r'''
   "id": "6319fa71f3b7be288da7b74c"
 }
 ''';
-
-
-/*
-dioMock.post(
-          any(),
-          data: {
-            "name": "name",
-            "email": "email",
-            "password": "password",
-          },
-        )).thenAnswer(
-      (_) async => Response(
-        data: jsonDecode(response),
-        statusCode: 200,
-        requestOptions: RequestOptions(
-          path: '',
-        ),
-      ),
-
-
-*/
